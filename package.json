@@ -1,8 +1,8 @@
 {
-  "name": "polos_desarrollo",
+  "name": "mapa_dgccps",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://Cartodynamics.github.io/polos_desarrollo",
+  "homepage": "https://Cartodynamics.github.io/mapa_dgccps",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -14,10 +14,9 @@
     "@types/xlsx": "^0.0.36",
     "maplibre-gl": "^5.3.0",
     "pmtiles": "^4.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",
-    "react-table": "^7.8.0",
     "recharts": "^2.15.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
@@ -55,5 +54,10 @@
     "ajv": "^8.12.0",
     "ajv-keywords": "^5.1.0",
     "gh-pages": "^6.3.0"
-  }
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

@@ -41,7 +41,7 @@ body {
 
 .info-box-header {
   padding: 15px;
-  background-color: #1e5b4f;
+  background-color: #C83182;
   color: white;
   border-radius: 8px;
 }
@@ -166,7 +166,7 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #1e5b4f;
+  background-color: #C83182;
 }
 
 input:checked + .slider:before {
@@ -190,9 +190,52 @@ input:checked + .slider:before {
 }
 
 .city-button.active {
-  background-color: #1e5b4f;
+  background-color: #C83182;
   color: white;
-  border-color: #1e5b4f;
+  border-color: #C83182;
 }
+
+.custom-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background-color: #C83182;
+  color: #fff;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  white-space: nowrap;
+
+  position: absolute;
+  z-index: 1001;
+  top: 50%;
+  right: 110%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+
+.custom-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent transparent #C83182;
+}
+
 
 
