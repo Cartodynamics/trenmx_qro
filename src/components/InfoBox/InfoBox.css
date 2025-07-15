@@ -6,7 +6,7 @@ body {
   position: absolute;
   top: 1px;
   left: 20px;
-  width: 320px;
+  width: 360px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -41,7 +41,7 @@ body {
 
 .info-box-header {
   padding: 15px;
-  background-color: #C83182;
+  background-color: #002f2a;
   color: white;
   border-radius: 8px;
 }
@@ -166,7 +166,7 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #C83182;
+  background-color: #002f2a;
 }
 
 input:checked + .slider:before {
@@ -190,9 +190,9 @@ input:checked + .slider:before {
 }
 
 .city-button.active {
-  background-color: #C83182;
+  background-color: #002f2a;
   color: white;
-  border-color: #C83182;
+  border-color: #002f2a;
 }
 
 .custom-tooltip {
@@ -202,7 +202,7 @@ input:checked + .slider:before {
 
 .tooltip-text {
   visibility: hidden;
-  background-color: #C83182;
+  background-color: #002f2a;
   color: #fff;
   text-align: center;
   padding: 6px 10px;
@@ -234,7 +234,7 @@ input:checked + .slider:before {
   margin-top: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent transparent #C83182;
+  border-color: transparent transparent transparent #002f2a;
 }
 
 

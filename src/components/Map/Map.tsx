@@ -169,8 +169,8 @@ map.addLayer({
     const map = new maplibregl.Map({
       container: containerRef.current!,
       style: baseStyle,
-      center: [-95.14204, 17.16501],
-      zoom: 7.42,
+      center: [-105.15135, 23.55291],
+      zoom: 4.47,
       minZoom: 4,
       maxZoom: 18,
       attributionControl: false
@@ -302,11 +302,11 @@ map.addLayer({
 
       map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
       const dark2 = ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666'];
-const sedeMatch: (string | number)[] = [];
-for (let i = 1; i <= 70; i++) {
-  sedeMatch.push(i, dark2[i % dark2.length]);  // NOTA: i como número
+const puebloMatch: (string | number)[] = [];
+for (let i = 1; i <= 72; i++) {
+  puebloMatch.push(i, dark2[i % dark2.length]);  // NOTA: i como número
 }
-const sedeExpression = ['match', ['get', 'ID_Sede'], ...sedeMatch, '#666666'] as any;
+const puebloExpression = ['match', ['get', 'ID_Pueblo'], ...puebloMatch, '#666666'] as any;
 
       map.addLayer({
         id: 'LocalidadesSedeINPI',
@@ -314,12 +314,13 @@ const sedeExpression = ['match', ['get', 'ID_Sede'], ...sedeMatch, '#666666'] as
         source: 'LocalidadesSedeINPI',
         'source-layer': 'inpi_tile',
         paint: {
-          'circle-radius': 3,
-          'circle-color': sedeExpression,
+          'circle-radius': 2.5,
+          'circle-color': puebloExpression,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 0.3  
         },
-        layout: { visibility: 'none' }
+        layout: { visibility: layersVisibility['LocalidadesSedeINPI'] ? 'visible' : 'none' }
+
       });
 
       map.on('mouseenter', 'LocalidadesSedeINPI', (e) => {
@@ -330,8 +331,9 @@ const sedeExpression = ['match', ['get', 'ID_Sede'], ...sedeMatch, '#666666'] as
           <strong>Municipio:</strong> ${props.NOM_MUN}<br/>
           <strong>Comunidad:</strong> ${props.NOM_COM}<br/>
           <strong>Pueblo:</strong> ${props.Pueblo}<br/>
-          <strong>Población total:</strong> ${props.POBTOT}<br/>
-          <strong>Pobl en hogares indígenas:</strong> ${props.PHOG_IND}<br/>
+          <strong>Estimación de la población:</strong> ${props.PTC_1}<br/>
+          <strong>Número de asentamientos:</strong> ${props.NA_2}<br/>
+          <strong>Población en hogares indígenas (loc sede) :</strong> ${props.PHOG_IND}<br/>
           <strong>Afrodescendientes:</strong> ${props.POB_AFRO}<br/>
           <strong>Tipo:</strong> ${props.TIPOLOGIAA}<br/>
           <strong>Marginación:</strong> ${props.GM_2020}<br/>
@@ -374,6 +376,87 @@ const sedeExpression = ['match', ['get', 'ID_Sede'], ...sedeMatch, '#666666'] as
         popup.remove();
       });     
 
+map.addSource('nucleos_agrarios', {
+  type: 'vector',
+  url: 'pmtiles://data/nucleos_agrarios.pmtiles'
+});
+
+map.addLayer({
+  id: 'nucleos_agrarios',
+  type: 'fill',
+  source: 'nucleos_agrarios',
+  'source-layer': 'nucleos_agrarios_tile',
+  paint: {
+    'fill-color': '#4b352a',
+    'fill-opacity': 0.5,
+    'fill-outline-color': '#333333'
+  },
+  layout: {
+    visibility: layersVisibility['nucleos_agrarios'] ? 'visible' : 'none'
+  }
+});
+
+map.on('mouseenter', 'nucleos_agrarios', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const props = e.features?.[0]?.properties;
+  if (!props) return;
+  popup.setLngLat(e.lngLat).setHTML(`
+    <strong>Entidad:</strong> ${props.nom_entida || 'Sin dato'}<br/>
+    <strong>Municipio:</strong> ${props.nom_munici || 'Sin dato'}<br/>
+    <strong>Tipo de propiedad:</strong> ${props.tipo_propi || 'Sin dato'}<br/>
+    <strong>Programa:</strong> ${props.programa || 'Sin dato'}
+  `).addTo(map);
+});
+
+map.on('mouseleave', 'nucleos_agrarios', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
+
+
+
+map.addSource('PuntosWiFiCFE', {
+  type: 'vector',
+  url: 'pmtiles://data/PuntosWiFiCFE.pmtiles'
+});
+
+const tecnologias = [
+  { id: 'PuntosWiFiCFE_4G', color: '#9f2241', filtro: '4G' },
+  { id: 'PuntosWiFiCFE_FIBRA', color: '#cda578', filtro: 'FIBRA O COBRE' },
+  { id: 'PuntosWiFiCFE_SATELITAL', color: '#235b4e', filtro: 'SATELITAL' }
+];
+
+tecnologias.forEach(({ id, color, filtro }) => {
+  map.addLayer({
+    id,
+    type: 'circle',
+    source: 'PuntosWiFiCFE',
+    'source-layer': 'PuntosWiFiCFE_tile',
+    filter: ['==', ['get', 'TECNOLOGIA'], filtro],
+    paint: {
+      'circle-radius': 1.5,
+      'circle-color': color,
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 0
+    },
+    layout: { visibility: 'none' } // Por defecto oculto
+  });
+
+  map.on('mouseenter', id, (e) => {
+    const props = e.features?.[0]?.properties;
+    if (!props) return;
+    popup.setLngLat(e.lngLat).setHTML(`
+      <strong>Nombre:</strong> ${props['INMUEBLE NOMBRE']}<br/>
+      <strong>Tipo:</strong> ${props['TIPO INMUEBLE']}<br/>
+      <strong>AP:</strong> ${props['NOMBRE AP']}<br/>
+      <strong>Tecnología:</strong> ${props['TECNOLOGIA']}
+    `).addTo(map);
+  });
+
+  map.on('mouseleave', id, () => {
+    popup.remove();
+  });
+});
       
     }); 
     
