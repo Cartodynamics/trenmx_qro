@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/trenmx_qro/static/css/main.d90fc805.css",
+    "main.js": "/trenmx_qro/static/js/main.b3f53744.js",
+    "static/js/453.ca763c4f.chunk.js": "/trenmx_qro/static/js/453.ca763c4f.chunk.js",
+    "index.html": "/trenmx_qro/index.html",
+    "main.d90fc805.css.map": "/trenmx_qro/static/css/main.d90fc805.css.map",
+    "main.b3f53744.js.map": "/trenmx_qro/static/js/main.b3f53744.js.map",
+    "453.ca763c4f.chunk.js.map": "/trenmx_qro/static/js/453.ca763c4f.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d90fc805.css",
+    "static/js/main.b3f53744.js"
+  ]
+}
