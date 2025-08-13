@@ -1,8 +1,8 @@
 {
-  "name": "mapa_dgccps",
+  "name": "mapa_trenmx_qro",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://Cartodynamics.github.io/mapa_dgccps",
+  "homepage": "https://Cartodynamics.github.io/trenmx_qro",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",

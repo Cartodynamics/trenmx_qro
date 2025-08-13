@@ -5,7 +5,7 @@ type LegendItem = {
   id: string;
   label: string;
   color: string;
-  shape: 'circle' | 'square';
+  shape: 'circle' | 'square'| 'line';
   size?: number;
   switch?: boolean;
   defaultChecked?: boolean;

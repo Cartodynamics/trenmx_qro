@@ -18,6 +18,7 @@ const Map: React.FC<MapProps> = ({ layersVisibility }) => {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [currentPoints, setCurrentPoints] = useState<maplibregl.LngLat[]>([]);
   const [routesData, setRoutesData] = useState<any[]>([]);
+const [selectedPueblo, setSelectedPueblo] = useState<string | null>(null);
 
   const applyVisibility = () => {
     const map = mapRef.current;
@@ -169,8 +170,8 @@ map.addLayer({
     const map = new maplibregl.Map({
       container: containerRef.current!,
       style: baseStyle,
-      center: [-105.15135, 23.55291],
-      zoom: 4.47,
+      center: [-106.98189, 24.09162],
+      zoom: 4.32,
       minZoom: 4,
       maxZoom: 18,
       attributionControl: false
@@ -184,129 +185,231 @@ map.addLayer({
     }), 'bottom-right');
 
     map.on('load', () => {
-      const zonas = ['zona1', 'zona2'];
       const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
-      zonas.forEach(zona => {
-        map.addSource(`mesas_cercanas_${zona}`, {
-          type: 'vector',
-          url: `pmtiles://data/mesas_cercanas_${zona}.pmtiles`
-        });
-        
-        map.addLayer({
-          id: `mesas_cercanas_${zona}`,
-          type: 'fill',
-          source: `mesas_cercanas_${zona}`,
-          'source-layer': `mesas_cercanas_${zona}_tile`,
-          paint: {
-            'fill-color': '#f8e71c',
-            'fill-opacity': 0.4,
-            'fill-outline-color': '#333333'
-          },
-          layout: { visibility: 'none' }
-        });
+      map.addSource('trazo_actual', {
+  type: 'vector',
+  url: 'pmtiles://data/trazo_actual.pmtiles'
+});
+map.addLayer({
+  id: 'trazo_actual',
+  type: 'line',
+  source: 'trazo_actual',
+  'source-layer': 'trazo_actual_tile', // <-- ajusta si tu source-layer real es otro
+  paint: {
+    'line-color': '#ff0000',
+    'line-width': 3
+  },
+  layout: { visibility: layersVisibility['trazo_actual'] ? 'visible' : 'none' }
+});
 
-        map.on('mouseenter', `mesas_cercanas_${zona}`, (e) => {
-          map.getCanvas().style.cursor = 'pointer';
-          const props = e.features?.[0]?.properties;
-          if (!props) return;
-          popup.setLngLat(e.lngLat).setHTML(`
-            <strong>Entidad:</strong> ${props._NOM_ENT || 'Sin dato'}<br/>
-            <strong>Región:</strong> ${props._REGION || 'Sin dato'}<br/>
-            <strong>Nombre Región:</strong> ${props._NOM_REGION || 'Sin dato'}
-          `).addTo(map);
-        });
 
-        map.on('mouseleave', `mesas_cercanas_${zona}`, () => {
-          map.getCanvas().style.cursor = '';
-          popup.remove();
-        });
+map.addSource('comunidades1y2', {
+  type: 'vector',
+  url: 'pmtiles://data/comunidades1y2.pmtiles'
+});
+map.addLayer({
+  id: 'comunidades1y2',
+  type: 'circle',
+  source: 'comunidades1y2',
+  'source-layer': 'comunidades1y2_tile', // <-- ajusta si tu source-layer real es otro
+  paint: {
+    'circle-radius': [
+      'interpolate', ['linear'], ['zoom'],
+      5, 2,
+      8, 3,
+      11, 5,
+      14, 8
+    ],
+    'circle-color': '#ff8c00',
+    'circle-stroke-color': '#ffffff',
+    'circle-stroke-width': 0.5
+  },
+  layout: { visibility: layersVisibility['comunidades1y2'] ? 'visible' : 'none' }
+});
+map.on('mouseenter', 'comunidades1y2', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const p = e.features?.[0]?.properties; if (!p) return;
+  popup
+    .setLngLat(e.lngLat)
+    .setHTML(`
+      <strong>Entidad:</strong> ${p.NOM_ENT ?? 'Sin dato'}<br/>
+      <strong>Municipio:</strong> ${p.NOM_MUN ?? 'Sin dato'}<br/>
+      <strong>Comunidad:</strong> ${p.NOM_COM ?? 'Sin dato'}<br/>
+      <strong>Pueblo:</strong> ${p.Pueblo ?? 'Sin dato'}<br/>
+      <strong>Estimación de la población:</strong> ${p.PTC_1 ?? 'Sin dato'}<br/>
+      <strong>Distancia al trazo actual:</strong> ${p.HubDist ?? 'Sin dato'}
+    `)
+    .addTo(map);
+});
+map.on('mouseleave', 'comunidades1y2', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
 
-        map.addSource(`regiones_${zona}`, {
-          type: 'vector',
-          url: `pmtiles://data/regiones_${zona}.pmtiles`
-        });
+/** 3) Núcleos directos — polígonos #85b66f, CON popup **/
+map.addSource('nucleos_directos', {
+  type: 'vector',
+  url: 'pmtiles://data/nucleos_directos.pmtiles'
+});
+map.addLayer({
+  id: 'nucleos_directos',
+  type: 'fill',
+  source: 'nucleos_directos',
+  'source-layer': 'nucleos_directos_tile', // <-- ajusta si tu source-layer real es otro
+  paint: {
+    'fill-color': '#85b66f',
+    'fill-opacity': 0.45,
+    'fill-outline-color': '#2f4f2f'
+  },
+  layout: { visibility: layersVisibility['nucleos_directos'] ? 'visible' : 'none' }
+});
+map.on('mouseenter', 'nucleos_directos', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const p = e.features?.[0]?.properties; if (!p) return;
+  popup
+    .setLngLat(e.lngLat)
+    .setHTML(`
+      <strong>Núcleo:</strong> ${p.nom_nucleo ?? 'Sin dato'}<br/>
+      <strong>Tipo de propiedad:</strong> ${p.tipo_propi ?? 'Sin dato'}<br/>
+      <strong>Programa:</strong> ${p.programa ?? 'Sin dato'}<br/>
+      <strong>Fecha de creación:</strong> ${p.Fecha_Crea ?? 'Sin dato'}
+    `)
+    .addTo(map);
+});
+map.on('mouseleave', 'nucleos_directos', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
 
-        const colorSet = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3'];
-        const matchValues: (string | number)[] = [];
-        for (let i = 1; i <= 266; i++) {
-          matchValues.push(i, colorSet[i % colorSet.length]);
-        }
-        const matchExpression = ['match', ['get', '_REGION'], ...matchValues, '#cccccc'] as any;
+/** 4) Núcleos a 5 km — polígonos #356c61, CON popup (mismos campos) **/
+map.addSource('nucleos5km', {
+  type: 'vector',
+  url: 'pmtiles://data/nucleos5km.pmtiles'
+});
+map.addLayer({
+  id: 'nucleos5km',
+  type: 'fill',
+  source: 'nucleos5km',
+  'source-layer': 'nucleos5km_tile', // <-- ajusta si tu source-layer real es otro
+  paint: {
+    'fill-color': '#356c61',
+    'fill-opacity': 0.30,
+    'fill-outline-color': '#1c3a35'
+  },
+  layout: { visibility: layersVisibility['nucleos5km'] ? 'visible' : 'none' }
+});
+map.on('mouseenter', 'nucleos5km', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const p = e.features?.[0]?.properties; if (!p) return;
+  popup
+    .setLngLat(e.lngLat)
+    .setHTML(`
+      <strong>Núcleo:</strong> ${p.nom_nucleo ?? 'Sin dato'}<br/>
+      <strong>Tipo de propiedad:</strong> ${p.tipo_propi ?? 'Sin dato'}<br/>
+      <strong>Programa:</strong> ${p.programa ?? 'Sin dato'}<br/>
+      <strong>Fecha de creación:</strong> ${p.Fecha_Crea ?? 'Sin dato'}
+    `)
+    .addTo(map);
+});
+map.on('mouseleave', 'nucleos5km', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
 
-        map.addLayer({
-          id: `regiones_${zona}`,
-          type: 'fill',
-          source: `regiones_${zona}`,
-          'source-layer': `regiones_${zona}_tile`,
-          paint: {
-            'fill-color': matchExpression,
-            'fill-opacity': 0.5,
-            'fill-outline-color': '#333333'
-          },
-          layout: { visibility: 'none' }
-        });
+      map.addSource('anp', {
+  type: 'vector',
+  url: 'pmtiles://data/anp.pmtiles'
+});
 
-        map.on('mousemove', `regiones_${zona}`, (e) => {
-          map.getCanvas().style.cursor = 'pointer';
-          const props = e.features?.[0]?.properties;
-          if (!props) return;
-          popup.setLngLat(e.lngLat).setHTML(`
-            <strong>Entidad:</strong> ${props._NOM_ENT || 'Sin dato'}<br/>
-            <strong>Municipio:</strong> ${props.NOMGEO || 'Sin dato'}<br/>
-            <strong>Región:</strong> ${props._REGION || 'Sin dato'}<br/>
-            <strong>Nombre Región:</strong> ${props._NOM_REGION || 'Sin dato'}
-          `).addTo(map);
-        });
+map.addLayer({
+  id: 'anp',
+  type: 'fill',
+  source: 'anp',
+  'source-layer': 'anp_tile', 
+  paint: {
+    'fill-color': '#93DA97',
+    'fill-opacity': 0.5
+  },
+  layout: { visibility: 'none' }
+});
 
-        map.on('mouseleave', `regiones_${zona}`, () => {
-          map.getCanvas().style.cursor = '';
-          popup.remove();
-        });
+map.on('mouseenter', 'anp', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const props = e.features?.[0]?.properties;
+  if (!props) return;
+  popup.setLngLat(e.lngLat).setHTML(`
+    <strong>Nombre ANP:</strong> ${props.NOMBRE || 'Sin dato'}<br/>
+    <strong>Categoría de Manejo:</strong> ${props.CAT_MANEJO || 'Sin dato'}<br/>
+    <strong>Ubicación:</strong> ${props.ESTADOS || 'Sin dato'}<br/>
+    <strong>Región:</strong> ${props.REGION || 'Sin dato'}
+  `).addTo(map);
+});
 
-        map.addSource(`or_${zona}`, {
-          type: 'vector',
-          url: `pmtiles://data/or_${zona}.pmtiles`
-        });
+map.on('mouseleave', 'anp', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
 
-        map.addLayer({
-          id: `or_${zona}`,
-          type: 'circle',
-          source: `or_${zona}`,
-          'source-layer': `or_${zona}_tile`,
-          paint: {
-            'circle-radius': 5.5,
-            'circle-color': '#BC955C',
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 1
-          },
-          layout: { visibility: 'none' }
-        });
+map.addSource('nucleos_agrarios', {
+  type: 'vector',
+  url: 'pmtiles://data/nucleos_agrarios.pmtiles'
+});
 
-        map.on('mouseenter', `or_${zona}`, (e) => {
-          map.getCanvas().style.cursor = 'pointer';
-          const props = e.features?.[0]?.properties;
-          if (!props) return;
-          popup.setLngLat(e.lngLat).setHTML(`
-            <strong>Entidad:</strong> ${props.nom_ent || 'Sin dato'}<br/>
-            <strong>Municipio:</strong> ${props.nom_mun || 'Sin dato'}<br/>
-            <strong>Localidad:</strong> ${props.nom_loc || 'Sin dato'}<br/>
-            <strong>Oficina de Representación:</strong> ${props.or_ccpi || 'Sin dato'}
-          `).addTo(map);
-        });
+map.addLayer({
+  id: 'nucleos_agrarios',
+  type: 'fill',
+  source: 'nucleos_agrarios',
+  'source-layer': 'nucleos_agrarios_tile',
+  paint: {
+    'fill-color': '#4b352a',
+    'fill-opacity': 0.5,
+       
+  },
+  layout: { visibility: 'none' }
+});
 
-        map.on('mouseleave', `or_${zona}`, () => {
-          map.getCanvas().style.cursor = '';
-          popup.remove();
-        });
-      });
+map.on('mouseenter', 'nucleos_agrarios', (e) => {
+  map.getCanvas().style.cursor = 'pointer';
+  const props = e.features?.[0]?.properties;
+  if (!props) return;
+  popup.setLngLat(e.lngLat).setHTML(`
+    <strong>Entidad:</strong> ${props.nom_entida || 'Sin dato'}<br/>
+    <strong>Municipio:</strong> ${props.nom_munici || 'Sin dato'}<br/>
+    <strong>Tipo de propiedad:</strong> ${props.tipo_propi || 'Sin dato'}<br/>
+    <strong>Programa:</strong> ${props.programa || 'Sin dato'}
+  `).addTo(map);
+});
 
-      map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
-      const dark2 = ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666'];
+map.on('mouseleave', 'nucleos_agrarios', () => {
+  map.getCanvas().style.cursor = '';
+  popup.remove();
+});
+
+map.addSource('LocalidadesSedeINPI', { type: 'vector', url: 'pmtiles://data/inpi.pmtiles' });
+
+const puebloColors = [
+  '#e6194b', '#d62728', '#ff4f00', '#ff7f0e', '#a65628',
+  '#8b4513', '#6b4226', '#1f78b4', '#00429d', '#2171b5',
+  '#08306b', '#7b3294', '#6a3d9a', '#990099', '#8e0152',
+  '#f0027f', '#c11c78', '#e31a1c', '#f16913', '#a50f15',
+  '#b2182b', '#c51b7d', '#dd3497', '#1b7837', '#4daf4a',
+  '#006d2c', '#228b22', '#20b2aa', '#008080', '#2e8b57',
+  '#ff1493', '#ff69b4', '#ff4500', '#b03060', '#cd5c5c',
+  '#ff8c00', '#a0522d', '#9932cc', '#9400d3', '#8b008b',
+  '#7cfc00', '#32cd32', '#4169e1', '#0000cd', '#00008b',
+  '#00bfff', '#1e90ff', '#4682b4', '#5f9ea0', '#191970',
+  '#ff0000', '#c71585', '#dc143c', '#b22222', '#ff6347'
+];
+
+
+
+
 const puebloMatch: (string | number)[] = [];
 for (let i = 1; i <= 72; i++) {
-  puebloMatch.push(i, dark2[i % dark2.length]);  // NOTA: i como número
+  puebloMatch.push(i, puebloColors[i % puebloColors.length]);
 }
 const puebloExpression = ['match', ['get', 'ID_Pueblo'], ...puebloMatch, '#666666'] as any;
+
 
       map.addLayer({
         id: 'LocalidadesSedeINPI',
@@ -314,10 +417,18 @@ const puebloExpression = ['match', ['get', 'ID_Pueblo'], ...puebloMatch, '#66666
         source: 'LocalidadesSedeINPI',
         'source-layer': 'inpi_tile',
         paint: {
-          'circle-radius': 2.5,
+        'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+          5, 2,
+          8, 3,
+          11, 6,
+          14, 10
+        ],
           'circle-color': puebloExpression,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 0.3  
+          'circle-stroke-color': '#F2F2F2',
+          'circle-stroke-width': 0.2  
         },
         layout: { visibility: layersVisibility['LocalidadesSedeINPI'] ? 'visible' : 'none' }
 
@@ -331,9 +442,8 @@ const puebloExpression = ['match', ['get', 'ID_Pueblo'], ...puebloMatch, '#66666
           <strong>Municipio:</strong> ${props.NOM_MUN}<br/>
           <strong>Comunidad:</strong> ${props.NOM_COM}<br/>
           <strong>Pueblo:</strong> ${props.Pueblo}<br/>
-          <strong>Estimación de la población:</strong> ${props.PTC_1}<br/>
-          <strong>Número de asentamientos:</strong> ${props.NA_2}<br/>
-          <strong>Población en hogares indígenas (loc sede) :</strong> ${props.PHOG_IND}<br/>
+          <strong>Población total:</strong> ${props.POBTOT}<br/>
+          <strong>Pobl en hogares indígenas:</strong> ${props.PHOG_IND}<br/>
           <strong>Afrodescendientes:</strong> ${props.POB_AFRO}<br/>
           <strong>Tipo:</strong> ${props.TIPOLOGIAA}<br/>
           <strong>Marginación:</strong> ${props.GM_2020}<br/>
@@ -375,45 +485,6 @@ const puebloExpression = ['match', ['get', 'ID_Pueblo'], ...puebloMatch, '#66666
       map.on('mouseleave', 'PresidenciasMunicipales', () => {
         popup.remove();
       });     
-
-map.addSource('nucleos_agrarios', {
-  type: 'vector',
-  url: 'pmtiles://data/nucleos_agrarios.pmtiles'
-});
-
-map.addLayer({
-  id: 'nucleos_agrarios',
-  type: 'fill',
-  source: 'nucleos_agrarios',
-  'source-layer': 'nucleos_agrarios_tile',
-  paint: {
-    'fill-color': '#4b352a',
-    'fill-opacity': 0.5,
-    'fill-outline-color': '#333333'
-  },
-  layout: {
-    visibility: layersVisibility['nucleos_agrarios'] ? 'visible' : 'none'
-  }
-});
-
-map.on('mouseenter', 'nucleos_agrarios', (e) => {
-  map.getCanvas().style.cursor = 'pointer';
-  const props = e.features?.[0]?.properties;
-  if (!props) return;
-  popup.setLngLat(e.lngLat).setHTML(`
-    <strong>Entidad:</strong> ${props.nom_entida || 'Sin dato'}<br/>
-    <strong>Municipio:</strong> ${props.nom_munici || 'Sin dato'}<br/>
-    <strong>Tipo de propiedad:</strong> ${props.tipo_propi || 'Sin dato'}<br/>
-    <strong>Programa:</strong> ${props.programa || 'Sin dato'}
-  `).addTo(map);
-});
-
-map.on('mouseleave', 'nucleos_agrarios', () => {
-  map.getCanvas().style.cursor = '';
-  popup.remove();
-});
-
-
 
 map.addSource('PuntosWiFiCFE', {
   type: 'vector',
@@ -510,7 +581,16 @@ useEffect(() => {
     return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{
+  position: 'absolute',
+  top: '20px',
+  right: '20px',
+  zIndex: 1000,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+  alignItems: 'flex-end'  
+}}>
   <div className="custom-tooltip">
     <button
       onClick={toggleSatellite}
@@ -526,6 +606,8 @@ useEffect(() => {
       aria-label="Cambiar vista del mapa"
     >
       {isSatellite ? '🗺️' : '🛰️'}
+
+      
     </button>
     <span className="tooltip-text">Cambiar a vista de satélite</span>
   </div>
@@ -543,9 +625,102 @@ useEffect(() => {
       }}
       aria-label="Medir distancia"
     >
-      📏
+      📏 
     </button>
+    
     <span className="tooltip-text">Seleccionar nodos para ruta</span>
+  </div>
+   <div className="custom-tooltip">
+    <select
+  onChange={(e) => {
+    const value = e.target.value;
+    setSelectedPueblo(value === 'ALL' ? null : value);
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (value === 'ALL') {
+      map.setFilter('LocalidadesSedeINPI', null);
+    } else {
+      map.setFilter('LocalidadesSedeINPI', ['==', ['get', 'Pueblo'], value]);
+    }
+  }}
+>
+
+      <option value="ALL">Seleccionar Pueblo</option>
+      <option>Mayo</option>
+      <option>Afromexicano</option>
+      <option>Akateko</option>
+      <option>Amuzgo</option>
+      <option>Ayapaneco</option>
+      <option>Caxcan</option>
+      <option>Chatino</option>
+      <option>Chichimeco</option>
+      <option>Chinanteco</option>
+      <option>Chocholteco</option>
+      <option>Ch'ol</option>
+      <option>Chontal de Oaxaca</option>
+      <option>Chuj</option>
+      <option>Coca</option>
+      <option>Cochimí</option>
+      <option>Cora</option>
+      <option>Cucapá</option>
+      <option>Cuicateco</option>
+      <option>Guarijío</option>
+      <option>Huasteco</option>
+      <option>Ikoots (Huave)</option>
+      <option>Ixcateco</option>
+      <option>Ixil</option>
+      <option>Jakalteko</option>
+      <option>Kaqchikel</option>
+      <option>K'iche'</option>
+      <option>Kickapoo</option>
+      <option>Kiliwa</option>
+      <option>Kumiai</option>
+      <option>Lacandón</option>
+      <option>Mam</option>
+      <option>Matlatzinca</option>
+      <option>Maya</option>
+      <option>Mazahua</option>
+      <option>Mazateco</option>
+      <option>Me’phaa (Tlapaneco)</option>
+      <option>Mexikan</option>
+      <option>Mixe</option>
+      <option>Mixteco</option>
+      <option>N’dee</option>
+      <option>Nahua</option>
+      <option>Otomí</option>
+      <option>Pa Ipai/Ku'ahl</option>
+      <option>Pame</option>
+      <option>Pima</option>
+      <option>Pirinda</option>
+      <option>Pluricultural</option>
+      <option>Popoloca</option>
+      <option>Popoluca de la Sierra</option>
+      <option>P'urhépecha (Tarasco)</option>
+      <option>Q'anjob'al</option>
+      <option>Qato'k</option>
+      <option>Q'eqchi'</option>
+      <option>Rarámuli (Tarahumara)</option>
+      <option>Seri</option>
+      <option>Tacuate</option>
+      <option>Tepehua</option>
+      <option>Tepehuano del norte</option>
+      <option>Tepehuano del sur</option>
+      <option>Texistepequeño</option>
+      <option>Tlahuica</option>
+      <option>Tohono O’odham (Pápago)</option>
+      <option>Tojolabal</option>
+      <option>Totonaco</option>
+      <option>Triqui</option>
+      <option>Tseltal</option>
+      <option>Tsotsil</option>
+      <option>Wixárika (Huichol)</option>
+      <option>Yaqui</option>
+      <option>Yokot'an (Chontal de Tabasco)</option>
+      <option>Zapoteco</option>
+      <option>Zoque</option>
+    </select>
+    
   </div>
 </div>
 

@@ -6,7 +6,7 @@ body {
   position: absolute;
   top: 1px;
   left: 20px;
-  width: 360px;
+  width: 330px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -41,14 +41,14 @@ body {
 
 .info-box-header {
   padding: 15px;
-  background-color: #002f2a;
+  background-color: #a57f2c;
   color: white;
   border-radius: 8px;
 }
 
 .info-box-header h2 {
   margin: 2px 0 0;
-  font-size: 18px;
+  font-size: 16px;
   font-family: 'Montserrat', sans-serif;
 }
 
@@ -166,7 +166,7 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #002f2a;
+  background-color: #a57f2c;
 }
 
 input:checked + .slider:before {
@@ -190,9 +190,9 @@ input:checked + .slider:before {
 }
 
 .city-button.active {
-  background-color: #002f2a;
+  background-color: #a57f2c;
   color: white;
-  border-color: #002f2a;
+  border-color: #a57f2c;
 }
 
 .custom-tooltip {
@@ -202,7 +202,7 @@ input:checked + .slider:before {
 
 .tooltip-text {
   visibility: hidden;
-  background-color: #002f2a;
+  background-color: #a57f2c;
   color: #fff;
   text-align: center;
   padding: 6px 10px;
@@ -234,8 +234,60 @@ input:checked + .slider:before {
   margin-top: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent transparent #002f2a;
+  border-color: transparent transparent transparent #a57f2c;
+}
+
+.custom-tooltip select {
+  outline: none;
+}
+
+.custom-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+select option:checked {
+  background-color: #a57f2c; 
+  color: white;
+}
+
+select option:hover {
+  background-color: #a57f2c;
+  color: white;
 }
 
 
+.custom-tooltip select {
+  appearance: none;
+  background-color: #a57f2c;  /* Verde para el botón cerrado */
+  color: white;
+  border: 1px solid white;
+  padding: 6px 30px 6px 8px; /* deja espacio para la flechita */
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  width: 170px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
 
+ }
+
+
+
+/* Hover sobre cada opción en el desplegable */
+select option:hover {
+  background-color: #a57f2c !important;
+  color: white !important;
+}
+
+/* Cuando una opción está seleccionada */
+select option:checked {
+  background-color: #a57f2c;
+  color: white;
+}
+
+/* Estilo normal del texto en las opciones */
+select option {
+  color: black;
+  background-color: white;
+}
